@@ -62,17 +62,5 @@ namespace Cayd.AspNetCore.ExecutionResult
             };
             Metadata = metadata;
         }
-
-        /// <summary>
-        /// Creates a failed execution result.
-        /// </summary>
-        /// <param name="errorCode">The HTTP code of the execution.</param>
-        /// <param name="metadata">Extra metadata of the execution.</param>
-        public ExecError(int errorCode, object? metadata = null)
-        {
-            ErrorCode = errorCode;
-            Details = new List<ExecErrorDetail>();
-            Metadata = metadata;
-        }
     }
 }
