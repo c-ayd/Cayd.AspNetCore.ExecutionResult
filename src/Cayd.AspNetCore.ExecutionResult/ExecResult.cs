@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Cayd.AspNetCore.ExecutionResult.ClientError;
+using Cayd.AspNetCore.ExecutionResult.Successful;
+using System;
 using System.Collections.Generic;
 
 namespace Cayd.AspNetCore.ExecutionResult
@@ -58,6 +60,23 @@ namespace Cayd.AspNetCore.ExecutionResult
         public T Match<T>(Func<int, object?, T> redirection, Func<int, ICollection<ExecErrorDetail>, object?, T> error)
             => _result == EResult.Redirection ? redirection(_redirection!.RedirectionCode, _redirection.Metadata) : error(_error!.ErrorCode, _error.Details, _error.Metadata);
 
+
+        public static implicit operator ExecResult<TValue>(ExecSuccess<TValue> success)
+            => new ExecResult<TValue>(success);
+        public static implicit operator ExecResult<TValue>(TValue value)
+            => new ExecResult<TValue>(new ExecOk<TValue>(value));
+
+        public static implicit operator ExecResult<TValue>(ExecRedirection redirection)
+            => new ExecResult<TValue>(redirection);
+
+        public static implicit operator ExecResult<TValue>(ExecError error)
+            => new ExecResult<TValue>(error);
+        public static implicit operator ExecResult<TValue>(List<ExecErrorDetail> errorDetails)
+            => new ExecResult<TValue>(new ExecBadRequest(errorDetails));
+        public static implicit operator ExecResult<TValue>(ExecErrorDetail[] errorDetails)
+            => new ExecResult<TValue>(new ExecBadRequest(errorDetails));
+        public static implicit operator ExecResult<TValue>(ExecErrorDetail errorDetail)
+            => new ExecResult<TValue>(new ExecBadRequest(errorDetail));
 
         private enum EResult
         {
