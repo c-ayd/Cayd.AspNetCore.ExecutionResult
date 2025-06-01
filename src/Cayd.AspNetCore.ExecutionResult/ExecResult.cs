@@ -9,21 +9,32 @@ namespace Cayd.AspNetCore.ExecutionResult
     /// <typeparam name="TValue">The type of the value returned by the execution if successful.</typeparam>
     public class ExecResult<TValue>
     {
-        private readonly bool _isSuccess;
+        private readonly EResult _result;
         private readonly ExecSuccess<TValue>? _success;
+        private readonly ExecRedirection? _redirection;
         private readonly ExecError? _error;
 
         private ExecResult(ExecSuccess<TValue> success)
         {
-            _isSuccess = true;
+            _result = EResult.Success;
             _success = success;
+            _redirection = null;
+            _error = null;
+        }
+
+        private ExecResult(ExecRedirection redirection)
+        {
+            _result = EResult.Redirection;
+            _success = null;
+            _redirection = redirection;
             _error = null;
         }
 
         private ExecResult(ExecError error)
         {
-            _isSuccess = false;
+            _result = EResult.Error;
             _success = null;
+            _redirection = null;
             _error = error;
         }
 
@@ -35,6 +46,24 @@ namespace Cayd.AspNetCore.ExecutionResult
         /// <param name="error">The method to be executed if the execution result is a failure.</param>
         /// <returns>The return type of the match method.</returns>
         public T Match<T>(Func<int, TValue?, object?, T> success, Func<int, ICollection<ExecErrorDetail>, object?, T> error)
-            => _isSuccess ? success(_success!.SuccessCode, _success.Value, _success.Metadata) : error(_error!.ErrorCode, _error.Details, _error.Metadata);
+            => _result == EResult.Success ? success(_success!.SuccessCode, _success.Value, _success.Metadata) : error(_error!.ErrorCode, _error.Details, _error.Metadata);
+
+        /// <summary>
+        /// Matches the execution result and calls the corresponding method based on success or error.
+        /// </summary>
+        /// <typeparam name="T">The return type of the match method.</typeparam>
+        /// <param name="redirection">The method to be executed if the execution result is redirected.</param>
+        /// <param name="error">The method to be executed if the execution result is a failure.</param>
+        /// <returns>The return type of the match method.</returns>
+        public T Match<T>(Func<int, object?, T> redirection, Func<int, ICollection<ExecErrorDetail>, object?, T> error)
+            => _result == EResult.Redirection ? redirection(_redirection!.RedirectionCode, _redirection.Metadata) : error(_error!.ErrorCode, _error.Details, _error.Metadata);
+
+
+        private enum EResult
+        {
+            Success         =   0,
+            Redirection     =   1,
+            Error           =   2,
+        }
     }
 }
