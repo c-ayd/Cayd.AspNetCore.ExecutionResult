@@ -1,5 +1,5 @@
 ﻿using Cayd.AspNetCore.ExecutionResult.ClientError;
-using Cayd.AspNetCore.ExecutionResult.Successful;
+using Cayd.AspNetCore.ExecutionResult.Success;
 using System;
 using System.Collections.Generic;
 

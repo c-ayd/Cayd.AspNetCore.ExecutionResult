@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace Cayd.AspNetCore.ExecutionResult.Successful
+namespace Cayd.AspNetCore.ExecutionResult.Success
 {
     /// <summary>
     /// Defines a successful execution result with the status code of 202.
