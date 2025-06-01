@@ -41,24 +41,43 @@ namespace Cayd.AspNetCore.ExecutionResult
         }
 
         /// <summary>
-        /// Matches the execution result and calls the corresponding method based on success or error.
+        /// Matches the execution result and calls the corresponding function based on success or error.
         /// </summary>
-        /// <typeparam name="T">The return type of the match method.</typeparam>
-        /// <param name="success">The method to be executed if the execution result is successful.</param>
-        /// <param name="error">The method to be executed if the execution result is a failure.</param>
-        /// <returns>The return type of the match method.</returns>
+        /// <typeparam name="T">The return type of the match function.</typeparam>
+        /// <param name="success">The function to be executed if the execution result is successful.</param>
+        /// <param name="error">The function to be executed if the execution result is a failure.</param>
+        /// <returns>The return type of the match function.</returns>
         public T Match<T>(Func<int, TValue?, object?, T> success, Func<int, ICollection<ExecErrorDetail>, object?, T> error)
             => _result == EResult.Success ? success(_success!.SuccessCode, _success.Value, _success.Metadata) : error(_error!.ErrorCode, _error.Details, _error.Metadata);
 
         /// <summary>
-        /// Matches the execution result and calls the corresponding method based on redirection or error.
+        /// Matches the execution result and calls the corresponding function based on redirection or error.
         /// </summary>
-        /// <typeparam name="T">The return type of the match method.</typeparam>
-        /// <param name="redirection">The method to be executed if the execution result is redirected.</param>
-        /// <param name="error">The method to be executed if the execution result is a failure.</param>
-        /// <returns>The return type of the match method.</returns>
+        /// <typeparam name="T">The return type of the match function.</typeparam>
+        /// <param name="redirection">The function to be executed if the execution result is redirected.</param>
+        /// <param name="error">The function to be executed if the execution result is a failure.</param>
+        /// <returns>The return type of the match function.</returns>
         public T Match<T>(Func<int, object?, T> redirection, Func<int, ICollection<ExecErrorDetail>, object?, T> error)
             => _result == EResult.Redirection ? redirection(_redirection!.RedirectionCode, _redirection.Metadata) : error(_error!.ErrorCode, _error.Details, _error.Metadata);
+
+        /// <summary>
+        /// Matches the execution result and calls the corresponding function based on success or error.
+        /// </summary>
+        /// <typeparam name="T">The return type of the match function.</typeparam>
+        /// <param name="success">The function to be executed if the execution result is successful.</param>
+        /// <param name="redirection">The function to be executed if the execution result is redirected.</param>
+        /// <param name="error">The function to be executed if the execution result is a failure.</param>
+        /// <returns>The return type of the match function.</returns>
+        public T Match<T>(Func<int, TValue?, object?, T> success, Func<int, object?, T> redirection, Func<int, ICollection<ExecErrorDetail>, object?, T> error)
+        {
+            return _result switch
+            {
+                EResult.Success => success(_success!.SuccessCode, _success.Value, _success.Metadata),
+                EResult.Redirection => redirection(_redirection!.RedirectionCode, _redirection.Metadata),
+                EResult.Error => error(_error!.ErrorCode, _error.Details, _error.Metadata),
+                _ => default!
+            };
+        }
 
 
         public static implicit operator ExecResult<TValue>(ExecSuccess<TValue> success)
@@ -77,6 +96,7 @@ namespace Cayd.AspNetCore.ExecutionResult
             => new ExecResult<TValue>(new ExecBadRequest(errorDetails));
         public static implicit operator ExecResult<TValue>(ExecErrorDetail errorDetail)
             => new ExecResult<TValue>(new ExecBadRequest(errorDetail));
+
 
         private enum EResult
         {
