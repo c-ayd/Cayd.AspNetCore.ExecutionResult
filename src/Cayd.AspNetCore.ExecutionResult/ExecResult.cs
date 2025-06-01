@@ -51,7 +51,7 @@ namespace Cayd.AspNetCore.ExecutionResult
             => _result == EResult.Success ? success(_success!.SuccessCode, _success.Value, _success.Metadata) : error(_error!.ErrorCode, _error.Details, _error.Metadata);
 
         /// <summary>
-        /// Matches the execution result and calls the corresponding method based on success or error.
+        /// Matches the execution result and calls the corresponding method based on redirection or error.
         /// </summary>
         /// <typeparam name="T">The return type of the match method.</typeparam>
         /// <param name="redirection">The method to be executed if the execution result is redirected.</param>
