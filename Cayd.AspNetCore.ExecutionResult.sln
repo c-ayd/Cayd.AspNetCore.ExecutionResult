@@ -12,7 +12,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cayd.AspNetCore.ExecutionResult", "src\Cayd.AspNetCore.ExecutionResult\Cayd.AspNetCore.ExecutionResult.csproj", "{394614F5-3ED5-446A-8AB0-547EE8656CA7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cayd.AspNetCore.ExecutionResult", "src\Cayd.AspNetCore.ExecutionResult\Cayd.AspNetCore.ExecutionResult.csproj", "{394614F5-3ED5-446A-8AB0-547EE8656CA7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "assets", "assets", "{4B3BF0E9-2200-4269-B755-5AB49749A945}"
+	ProjectSection(SolutionItems) = preProject
+		assets\nuget-logo.png = assets\nuget-logo.png
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
