@@ -47,8 +47,8 @@ namespace Cayd.AspNetCore.ExecutionResult
         /// <param name="success">The function to be executed if the execution result is successful.</param>
         /// <param name="error">The function to be executed if the execution result is a failure.</param>
         /// <returns>The return type of the match function.</returns>
-        public T Match<T>(Func<int, TValue?, object?, T> success, Func<int, ICollection<ExecErrorDetail>, object?, T> error)
-            => _result == EResult.Success ? success(_success!.SuccessCode, _success.Value, _success.Metadata) : error(_error!.ErrorCode, _error.Details, _error.Metadata);
+        public T Match<T>(Func<int, TValue, object?, T> success, Func<int, ICollection<ExecErrorDetail>, object?, T> error)
+            => _result == EResult.Success ? success(_success!.SuccessCode, _success.Value!, _success.Metadata) : error(_error!.ErrorCode, _error.Details, _error.Metadata);
 
         /// <summary>
         /// Matches the execution result and calls the corresponding function based on redirection or error.
@@ -68,11 +68,11 @@ namespace Cayd.AspNetCore.ExecutionResult
         /// <param name="redirection">The function to be executed if the execution result is redirected.</param>
         /// <param name="error">The function to be executed if the execution result is a failure.</param>
         /// <returns>The return type of the match function.</returns>
-        public T Match<T>(Func<int, TValue?, object?, T> success, Func<int, object?, T> redirection, Func<int, ICollection<ExecErrorDetail>, object?, T> error)
+        public T Match<T>(Func<int, TValue, object?, T> success, Func<int, object?, T> redirection, Func<int, ICollection<ExecErrorDetail>, object?, T> error)
         {
             return _result switch
             {
-                EResult.Success => success(_success!.SuccessCode, _success.Value, _success.Metadata),
+                EResult.Success => success(_success!.SuccessCode, _success.Value!, _success.Metadata),
                 EResult.Redirection => redirection(_redirection!.RedirectionCode, _redirection.Metadata),
                 EResult.Error => error(_error!.ErrorCode, _error.Details, _error.Metadata),
                 _ => default!
