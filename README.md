@@ -1,5 +1,5 @@
 ## About
-This is a result pattern library for ASP.NET Core that handles success and error flows in services and CQRS-based architectures. It abstracts HTTP status codes into result and error classes in the library such as `ExecOk<TValue>`, `ExecNoContent<TValue>`, `ExecBadRequest`, `ExecInternalServerError` etc., and supports implicit default success (`200 OK`) and default error (`400 Bad Request`) handling.
+This is a result pattern library for ASP.NET Core that handles success and error flows in services and CQRS-based architectures. It abstracts HTTP status codes into result and error classes such as `ExecOk<TValue>`, `ExecNoContent<TValue>`, `ExecBadRequest`, `ExecInternalServerError` etc. and supports implicit default success (`200 OK`) and default error (`400 Bad Request`) handling.
 
 ## How to Use
 After installing the package, you can use `ExecResult<TValue>` for returning types of your services or CQRS handlers.
@@ -12,9 +12,9 @@ public class MyService : IMyService
 {
     // ...
 
-    public ExecResult<User> GetUser(int id)
+    public ExecResult<User> GetUser(Guid id)
     {
-        var user = _dbContext.Find(id);
+        var user = _dbContext.Users.Find(id);
         if (user == null)
             return ExecErrorDetail("Message here if needed", "Message code here if needed (can be used for translation keys for instance)"); // -> This implicit usage utilizes ExecBadRequest, which returns 'error' with the HTTP status code of 400.
 
@@ -32,13 +32,17 @@ public class MyService : IMyService
 {
     // ...
 
-    public ExecResult<MyClass> GetData()
+    public ExecResult<MyClass> GetData(string? search)
     {
         if (CheckIfAuthorized())
             return ExecUnauthorized("Message here if needed", "Message code here if needed (can be used for translation keys for instance)");
 
-        var data = GetData();
-        if (data == null)
+        // Explicit usage of Bad Request. 'ExecErrorDetail' could be used directly as well.
+        if (search == null)
+            return ExecBadRequest("Message here if needed", "Message code here if needed (can be used for translation keys for instance)");
+
+        var data = _dbContext.Data.Where(x => x.Property1 == search).ToList();
+        if (data.Count == 0)
             return ExecNoContent();
 
         return data; // -> This implicit usage utilizes ExecOk, which returns 'success' with the HTTP status code of 200.
@@ -68,8 +72,7 @@ result.Match(
     (code, errors, metadata) => { /* Error */ }
 );
 
-// Since the returned result also includes the HTTP code, the corresponding response can be returned
-// in action methods by using the 'ObjectResult' class.
+// Since the returned result also includes the HTTP code, the response can be returned in action methods by using the 'ObjectResult' class.
 ```
 
 For CQRS handlers utilizing the `MediatR` library:
@@ -106,7 +109,7 @@ Client error (4xx) | Cayd.AspNetCore.ExecutionResult.ClientError
 Server error (5xx) | Cayd.AspNetCore.ExecutionResult.ServerError 
 
 ## Extras
-For CQRS handlers utilizing the `MediatR` library as well as `FluentValidation`, the validation pipeline can be set up as follows to use this library:
+For CQRS handlers utilizing the `MediatR` library as well as `FluentValidation`, the validation pipeline can be set up as follows to use `ExecBadRequest` automatically when validations fail:
 - Validation Behavior:
 ```csharp
 using Cayd.AspNetCore.ExecutionResult;
