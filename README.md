@@ -1,5 +1,5 @@
 ## About
-This is a result pattern library for ASP.NET Core that handles success and error flows in services and CQRS-based architectures. It abstracts HTTP status codes into result and error classes such as `ExecOk<TValue>`, `ExecNoContent<TValue>`, `ExecBadRequest`, `ExecInternalServerError` etc. and supports implicit default success (`200 OK`) and default error (`400 Bad Request`) handling.
+This is a result pattern library that handles success and error flows in services and CQRS-based architectures for ASP.NET Core. It abstracts HTTP status codes into result and error classes such as `ExecOk<TValue>`, `ExecNoContent<TValue>`, `ExecBadRequest`, `ExecInternalServerError` etc. and supports implicit default success (`200 OK`) and default error (`400 Bad Request`) handling.
 
 ## How to Use
 After installing the package, you can use `ExecResult<TValue>` for returning types of your services or CQRS handlers.
@@ -75,17 +75,17 @@ result.Match(
 // Since the returned result also includes the HTTP code, the response can be returned in action methods by using the 'ObjectResult' class.
 ```
 
-For CQRS handlers utilizing the `MediatR` library:
+For CQRS handlers utilizing the `Cayd.AspNetCore.ExecResult` library:
 - Request:
 ```csharp
-public class GetDataRequest : IRequest<ExecResult<GetDataResponse>>
+public class GetDataRequest : IAsyncRequest<ExecResult<GetDataResponse>>
 {
     // ...
 }
 ```
 - Handler:
 ```csharp
-public class GetDataHandler : IRequestHandler<GetDataRequest, ExecResult<GetDataResponse>>
+public class GetDataHandler : IAsyncHandler<GetDataRequest, ExecResult<GetDataResponse>>
 {
     // ...
 }
@@ -109,42 +109,40 @@ Client error (4xx) | Cayd.AspNetCore.ExecutionResult.ClientError
 Server error (5xx) | Cayd.AspNetCore.ExecutionResult.ServerError 
 
 ## Extras
-For CQRS handlers utilizing the `MediatR` library as well as `FluentValidation`, the validation pipeline can be set up as follows to use `ExecBadRequest` automatically when validations fail:
-- Validation Behavior:
+For CQRS handlers utilizing the `Cayd.AspNetCore.ExecResult` and `FluentValidation` libraries, the validation flow can be set up as follows to use ExecBadRequest automatically when validations fail:
+- Validation Flow:
 ```csharp
 using Cayd.AspNetCore.ExecutionResult;
 using Cayd.AspNetCore.ExecutionResult.ClientError;
+using Cayd.AspNetCore.Mediator.Abstractions;
+using Cayd.AspNetCore.Mediator.Flows;
 using FluentValidation;
-using MediatR;
 
-public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
-    where TRequest : IRequest<TResponse>
+public class MediatorValidationFlow<TRequest, TResponse> : IMediatorFlow<TRequest, TResponse>
+    where TRequest : IAsyncRequest<TResponse>
 {
     private readonly IEnumerable<IValidator<TRequest>> _validators;
 
-    public ValidationBehavior(IEnumerable<IValidator<TRequest>> validators)
+    public MediatorValidationFlow(IEnumerable<IValidator<TRequest>> validators)
     {
         _validators = validators;
     }
 
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+    public async Task<TResponse> InvokeAsync(TRequest request, AsyncHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
-        if (_validators.Any())
+        foreach (var validator in _validators)
         {
-            foreach (var validator in _validators)
-            {
-                if (validator != null)
-                {
-                    var validationResult = await validator.ValidateAsync(request, cancellationToken);
-                    if (validationResult.Errors.Count > 0)
-                    {
-                        var errorDetails = validationResult.Errors
-                            .Select(e => new ExecErrorDetail(e.ErrorMessage, e.ErrorCode))
-                            .ToList();
+            if (validator == null)
+                continue;
 
-                        return (dynamic)new ExecBadRequest(errorDetails);
-                    }
-                }
+            var validationResult = await validator.ValidateAsync(request, cancellationToken);
+            if (validationResult.Errors.Count > 0)
+            {
+                var errorDetails = validationResult.Errors
+                    .Select(e => new ExecErrorDetail(e.ErrorMessage, e.ErrorCode))
+                    .ToList();
+
+                return (dynamic)new ExecBadRequest(errorDetails);
             }
         }
 
@@ -156,7 +154,7 @@ public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TReques
 ```csharp
 public class GetDataValidation : AbstractValidator<GetDataRequest>
 {
-    public LoginValidation()
+    public GetDataValidation()
     {
         RuleFor(r => r.Property1)
             .NotEmpty()
@@ -165,11 +163,12 @@ public class GetDataValidation : AbstractValidator<GetDataRequest>
     }
 }
 ```
-- Registering The Pipeline:
+- Adding The Flow:
 ```csharp
-builder.Services.AddMediatR(config =>
+services.AddMediator(config =>
 {
     // ...
-    config.AddOpenBehavior(typeof(ValidationBehavior<,>));
+
+    config.AddTransientFlow(typeof(MediatorValidationFlow<,>));
 });
 ```
