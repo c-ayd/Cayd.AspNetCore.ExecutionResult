@@ -5,15 +5,15 @@
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <PackageId>Cayd.AspNetCore.ExecutionResult</PackageId>
-    <Title>Result pattern library for ASP.NET Core that handles success and error flows in services and CQRS-based architectures</Title>
-    <Version>1.0.0</Version>
+    <Title>Result pattern library that handles success and error flows in services and CQRS-based architectures for ASP.NET Core</Title>
+    <Version>1.0.1</Version>
     <Authors>Cemal A. Aydeniz</Authors>
-    <Description>A result pattern library for ASP.NET Core that handles success and error flows in services and CQRS-based architectures</Description>
+    <Description>A result pattern library that handles success and error flows in services and CQRS-based architectures for ASP.NET Core</Description>
     <PackageIcon>nuget-logo.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/c-ayd/Cayd.AspNetCore.Settings</RepositoryUrl>
-    <PackageTags>cayd;result;aspnetcore;result-pattern;execution;execution-result;success;error</PackageTags>
-    <PackageReleaseNotes>First release</PackageReleaseNotes>
+    <PackageTags>cayd;result;aspnetcore;result-pattern;execution;execution-result;success;error;execresult;exec-result</PackageTags>
+    <PackageReleaseNotes>Update readme</PackageReleaseNotes>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
